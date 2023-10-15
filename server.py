@@ -5,17 +5,15 @@ import json
 HOST = '127.0.0.1'  # Endereco IP do Servidor
 PORT = 5000  # Porta que o Servidor está
 
-statusUser = {
-    "status" : "ATIVO"
-}
 def handle_client(conexao, cliente, connected_users):
     # Atribuindo ao usuário recém conectado o status como ATIVO
+    for user in connected_users:
+        if user["ip"] == cliente[0] and user["porta"] == cliente[1]:
+            user["status"] = "ATIVO"
+    
     # Retornando quem conectou no servidor
     print('\nConexão realizada por:', cliente)
  
-    # Retornando o status do usuário
-    print('STATUS['+str(cliente[1])+']:', statusUser)
-
     while True:
         mensagem = conexao.recv(1024)
         if not mensagem:
@@ -42,7 +40,7 @@ while True:
     print("client", conexao)
     connected_users.append({
         "user": "",
-        "status":"", 
+        "status": "ATIVO",  # Atribuir o status como "ATIVO" quando um cliente se conecta
         "ip": cliente[0],
         "porta": cliente[1],
     })
