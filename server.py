@@ -5,13 +5,16 @@ import json
 HOST = '127.0.0.1'  # Endereco IP do Servidor
 PORT = 5000  # Porta que o Servidor está
 
+statusUser = {
+    "status" : "ATIVO"
+}
 def handle_client(conexao, cliente, connected_users):
     # Atribuindo ao usuário recém conectado o status como ATIVO
-    client_status = 'ATIVO'
     # Retornando quem conectou no servidor
     print('\nConexão realizada por:', cliente)
+ 
     # Retornando o status do usuário
-    print('STATUS['+str(cliente[1])+']:', client_status)
+    print('STATUS['+str(cliente[1])+']:', statusUser)
 
     while True:
         mensagem = conexao.recv(1024)
@@ -36,11 +39,12 @@ print('\nServidor TCP iniciado no IP', HOST, 'na porta', PORT, "\n")
 
 while True:
     conexao, cliente = tcp.accept()
+    print("client", conexao)
     connected_users.append({
         "user": "",
-        "status": "",
+        "status":"", 
         "ip": cliente[0],
-        "porta": cliente[1]
+        "porta": cliente[1],
     })
     client_handler = threading.Thread(target=handle_client, args=(conexao, cliente, connected_users))
     client_handler.start()

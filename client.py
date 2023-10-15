@@ -12,12 +12,13 @@ def list_functions():
     print("Lista de funções disponíveis:")
     print("\t[1] - Listar usuários online")
     print("\t[2] - Listar usuários jogando")
-    response = input();
+    response = input("\n");
 
     if(response == "1"):
         tcp.send(b"LIST_USERS")
         lista_usuarios = tcp.recv(1024).decode()
-        print(f'Usuários conectados: {lista_usuarios}')
+        print("Usuários conectados:\n",{lista_usuarios})
+        #print(f'Usuários conectados: {lista_usuarios}')
 
 def get_credentials():
     try:
