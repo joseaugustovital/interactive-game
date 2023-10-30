@@ -6,29 +6,89 @@ import datetime
 HOST = '127.0.0.1'  # Endereco IP do Servidor
 PORT = 5000  # Porta que o Servidor está
 
+
+
+
+
+
+
+# Esta função log_event é usada para registrar eventos em um arquivo
+# de log chamado "game.log". Ela recebe uma mensagem de evento como
+# entrada e grava a data e hora atual juntamente com a mensagem no arquivo.
 def log_event(event):
     with open("game.log", "a") as log_file:
         log_file.write(f"{datetime.datetime.now()}: {event}\n")
 
+
+
+
+
+# A função handle_client é chamada para lidar com cada cliente conectado ao servidor. 
+# Ela recebe a conexão, informações do cliente e a lista de usuários conectados como argumentos.
 def handle_client(conexao, cliente, connected_users):
+  
     # Atribuindo ao usuário recém conectado o status como ATIVO
     for user in connected_users:
+  
+        # Verifique se o usuário conectado é o mesmo que o usuário na lista de usuários conectados
         if user["ip"] == cliente[0] and user["porta"] == cliente[1]:
-            user["status"] = "ATIVO"
+
+            # Se for o mesmo usuário, altere o status para "INATIVO"
+            user["status"] = "INATIVO"
+
+            # Registre o evento no arquivo de log
+            log_event(f"Usuário {user['user']} tornou-se INATIVO.")
     
+    username = user["user"]
+
     # Retornando quem conectou no servidor
     print('\nConexão realizada por:', cliente)
  
     while True:
         mensagem = conexao.recv(1024)
+
+
         if not mensagem:
             break
-        if mensagem == b"LIST_USERS_ONLINE":
-            lista_usuarios = [user for user in connected_users if user["status"] == "ATIVO"]
-            conexao.send(json.dumps(lista_usuarios).encode())
-        elif mensagem == b"LIST_USERS_PLAYING":
-            lista_usuarios = [user for user in connected_users if user["status"] == "JOGANDO"]
-            conexao.send(json.dumps(lista_usuarios).encode())
+
+        
+        # Caso LIST_USERS_ONLINE
+        if mensagem.decode() == "1":
+            
+
+
+            # Busca todos os usuários conectados INATIVOS ou ATIVOS
+            # que sejam diferentes do usuário que está solicitando a lista
+            # de usuários conectados.
+            lista_usuarios = [user for user in connected_users if user["user"] != username]
+
+            # Envia o tamanho da lista de usuários conectados
+            conexao.send(str(len(lista_usuarios)).encode())
+
+            # Se o tamanho da lista for maior que 0, envie a lista de usuários conectados
+            if len(lista_usuarios) > 0:
+                conexao.send(json.dumps(lista_usuarios).encode())
+
+
+        # Caso LIST_USERS_PLAYING
+        elif mensagem.decode() == "2":
+
+            # Busca todos os usuários conectados com status JOGANDO e diferente do usuário que está solicitando a lista
+            # de usuários conectados.
+            lista_usuarios = [user for user in connected_users if user["user"] != username and user["status"] == "ATIVO"]
+
+            # Envia o tamanho da lista de usuários conectados
+            conexao.send(str(len(lista_usuarios)).encode())
+            
+            # Se o tamanho da lista for maior que 0, envie a lista de usuários conectados
+            if len(lista_usuarios) > 0:
+
+                # Envia a lista de usuários conectados
+                conexao.send(json.dumps(lista_usuarios).encode())
+
+
+
+
         elif mensagem.startswith(b"GAME_INI:"):
             user_b = mensagem.decode().split(":")[1]
             # Encontre o socket do usuário B
@@ -52,6 +112,9 @@ def handle_client(conexao, cliente, connected_users):
                 conexao.send(b"GAME_ACK")
             elif resposta == "GAME_NEG":
                 conexao.send(b"GAME_NEG")
+        elif mensagem == b"EXIT":
+            conexao.send(b"EXIT")
+            break
 
         print('\nCliente..:', cliente)
         print('Mensagem.:', mensagem.decode())
