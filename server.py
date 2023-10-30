@@ -18,13 +18,21 @@ def handle_client(conexao, cliente, connected_users):
         mensagem = conexao.recv(1024)
         if not mensagem:
             break
-        if mensagem == b"LIST_USERS":
-            lista_usuarios = json.dumps(connected_users)
-            conexao.send(lista_usuarios.encode())
+        if mensagem == b"LIST_USERS_ONLINE":
+            lista_usuarios = [user for user in connected_users if user["status"] == "ATIVO"]
+            conexao.send(json.dumps(lista_usuarios).encode())
+        elif mensagem == b"LIST_USERS_PLAYING":
+            lista_usuarios = [user for user in connected_users if user["status"] == "JOGANDO"]
+            conexao.send(json.dumps(lista_usuarios).encode())
+        elif mensagem == b"GAME_INI":
+            # Aqui você pode adicionar a lógica para aceitar ou recusar a solicitação de jogo.
+            # Por exemplo, se o usuário já estiver jogando, você pode recusar a solicitação.
+            conexao.send(b"GAME_ACK")  # Ou b"GAME_NEG"
         print('\nCliente..:', cliente)
         print('Mensagem.:', mensagem.decode())
     print('Finalizando conexão do cliente', cliente)
     conexao.close()
+
 
 tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 origem = (HOST, PORT)

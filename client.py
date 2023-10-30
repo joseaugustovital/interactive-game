@@ -12,13 +12,36 @@ def list_functions():
     print("Lista de funções disponíveis:")
     print("\t[1] - Listar usuários online")
     print("\t[2] - Listar usuários jogando")
-    response = input("\n");
+    print("\t[3] - Iniciar um jogo")
+    response = input("\n")
 
     if(response == "1"):
-        tcp.send(b"LIST_USERS")
+        tcp.send(b"LIST_USERS_ONLINE")
         lista_usuarios = tcp.recv(1024).decode()
-        print("Usuários conectados:\n",{lista_usuarios})
-        #print(f'Usuários conectados: {lista_usuarios}')
+        print("Usuários conectados:\n", lista_usuarios)
+    elif(response == "2"):
+        tcp.send(b"LIST_USERS_PLAYING")
+        lista_usuarios = tcp.recv(1024).decode()
+        print("Usuários jogando:\n", lista_usuarios)
+    elif(response == "3"):
+        tcp.send(b"LIST_USERS_ONLINE")
+        lista_usuarios = tcp.recv(1024).decode().split(',')
+        for i, user in enumerate(lista_usuarios):
+            print(f"{i+1}. {user}")
+        user_b_index = int(input("Selecione o índice do usuário com quem deseja iniciar o jogo: ")) - 1
+        user_b = lista_usuarios[user_b_index]
+        tcp.send(f"GAME_INI:{user_b}".encode())
+        resposta = tcp.recv(1024).decode()
+        if resposta == "GAME_ACK":
+            print("Solicitação de jogo aceita!")
+            # Aqui você pode adicionar o código para iniciar o jogo
+            while True:
+                message = input("Digite sua mensagem: ")
+                tcp.send(message.encode())
+                if message == "GAME_OVER":
+                    break
+        elif resposta == "GAME_NEG":
+            print("Solicitação de jogo recusada!")
 
 def get_credentials():
     try:
@@ -43,13 +66,13 @@ def create_user():
             "user" : user,
             "password" : password
         }
-        newIndex = str(len(credential))
-        credential[newIndex] = newUser
+        credential[user] = newUser
 
         with open('credentials.json','w') as content:
             json.dump(credential, content, indent=4)
         print("Usuário cadastrado com sucesso!")
- 
+
+
 def login_request():
     user = input("Digite o seu usuário: ")
     password = getpass.getpass("Digite a sua senha: ")
@@ -76,18 +99,7 @@ while(result != True):
 destino = (HOST, PORT)
 tcp.connect(destino)
 
-
-#print('\nDigite suas mensagens')
-#print('Para sair use CTRL+X\n')
-
-# Recebendo a mensagem do usuário final pelo teclado
-# mensagem = input()
-
 list_functions()
-# Enviando a mensagem para o Servidor TCP através da conexão
-#while mensagem != '\x18':
- #   tcp.send(str(mensagem).encode())
-  #  mensagem = input()
 
 # Fechando o Socket
 tcp.close()
