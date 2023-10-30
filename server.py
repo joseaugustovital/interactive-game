@@ -1,9 +1,14 @@
 import socket
 import threading
 import json
+import datetime
 
 HOST = '127.0.0.1'  # Endereco IP do Servidor
 PORT = 5000  # Porta que o Servidor está
+
+def log_event(event):
+    with open("game.log", "a") as log_file:
+        log_file.write(f"{datetime.datetime.now()}: {event}\n")
 
 def handle_client(conexao, cliente, connected_users):
     # Atribuindo ao usuário recém conectado o status como ATIVO
@@ -24,10 +29,30 @@ def handle_client(conexao, cliente, connected_users):
         elif mensagem == b"LIST_USERS_PLAYING":
             lista_usuarios = [user for user in connected_users if user["status"] == "JOGANDO"]
             conexao.send(json.dumps(lista_usuarios).encode())
-        elif mensagem == b"GAME_INI":
-            # Aqui você pode adicionar a lógica para aceitar ou recusar a solicitação de jogo.
-            # Por exemplo, se o usuário já estiver jogando, você pode recusar a solicitação.
-            conexao.send(b"GAME_ACK")  # Ou b"GAME_NEG"
+        elif mensagem.startswith(b"GAME_INI:"):
+            user_b = mensagem.decode().split(":")[1]
+            # Encontre o socket do usuário B
+            user_b_socket = None
+            for user in connected_users:
+                if user["user"] == user_b:
+                    user_b_socket = user["socket"]
+                    break
+            # Verifique se o usuário B foi encontrado
+            if user_b_socket is None:
+                print(f"Usuário {user_b} não encontrado.")
+                continue
+            # Envie uma mensagem para o usuário B perguntando se ele aceita ou não o convite para o jogo
+            user_b_socket.send(b"GAME_INVITE")
+            resposta = user_b_socket.recv(1024).decode()
+            if resposta == "GAME_ACK":
+                # Se o usuário B aceitar, mude o status de ambos os jogadores para "ATIVO"
+                for user in connected_users:
+                    if user["user"] == user_b or user["socket"] == conexao:
+                        user["status"] = "ATIVO"
+                conexao.send(b"GAME_ACK")
+            elif resposta == "GAME_NEG":
+                conexao.send(b"GAME_NEG")
+
         print('\nCliente..:', cliente)
         print('Mensagem.:', mensagem.decode())
     print('Finalizando conexão do cliente', cliente)
@@ -46,9 +71,10 @@ print('\nServidor TCP iniciado no IP', HOST, 'na porta', PORT, "\n")
 while True:
     conexao, cliente = tcp.accept()
     print("client", conexao)
+    username = conexao.recv(1024).decode()  # Receba o nome de usuário quando um cliente se conectar
     connected_users.append({
-        "user": "",
-        "status": "ATIVO",  # Atribuir o status como "ATIVO" quando um cliente se conecta
+        "user": username,
+        "status": "INATIVO",  # Atribuir o status como "ATIVO" quando um cliente se conectar
         "ip": cliente[0],
         "porta": cliente[1],
     })
