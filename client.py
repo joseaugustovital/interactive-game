@@ -43,7 +43,6 @@ def list_functions():
             print("Solicitação de jogo aceita!")
             logging.info(f'Usuário {result} tornou-se ATIVO\n')
             logging.info(f'Usuários {result} e {user_b}: PLAYING\n')
-            # Aqui você pode adicionar o código para iniciar o jogo
             while True:
                 message = input("Digite sua mensagem: ")
                 tcp.send(message.encode())
