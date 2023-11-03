@@ -36,7 +36,13 @@ def handle_client(conexao, cliente, connected_users):
     username = user["user"]
 
     # Retornando quem conectou no servidor
-    print("\nConexão realizada por:", cliente)
+    print(
+        "["
+        + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        + "]"
+        + ": Conexão realizada por:",
+        username,
+    )
 
     while True:
         mensagem = conexao.recv(1024)
@@ -78,15 +84,16 @@ def handle_client(conexao, cliente, connected_users):
                 # Envia a lista de usuários conectados
                 conexao.send(json.dumps(lista_usuarios).encode())
 
-        elif mensagem.startswith(b"GAME_INI:"):
-            user_b = mensagem.decode().split(":")[1]
-            print("teste", user_b)
+        elif mensagem.startswith(b"GAME_INI"):
+            user = conexao.recv(1024)
+            user_b = user.decode()
+            print("Usuário destino:", user_b)
             # Encontre o socket do usuário B
             user_b_socket = None
             user_b_status = None
             for user in connected_users:
                 if user["user"] == user_b:
-                    user_b_socket = user["socket"]
+                    user_b_socket = user["porta"]
                     user_b_status = user["status"]
                     break
             # Verifique se o usuário B foi encontrado
@@ -94,17 +101,21 @@ def handle_client(conexao, cliente, connected_users):
                 print(f"Usuário {user_b} não encontrado.")
                 continue
             # Envie uma mensagem para o usuário B perguntando se ele aceita ou não o convite para o jogo
-            conexao.send(user_b_status)
-            user_b_socket.send(b"GAME_INVITE")
-            resposta = user_b_socket.recv(1024).decode()
-            if resposta == "GAME_ACK":
-                # Se o usuário B aceitar, mude o status de ambos os jogadores para "ATIVO"
-                for user in connected_users:
-                    if user["user"] == user_b or user["socket"] == conexao:
-                        user["status"] = "ATIVO"
-                conexao.send(b"GAME_ACK")
-            elif resposta == "GAME_NEG":
-                conexao.send(b"GAME_NEG")
+            conexao.send(str(user_b_status).encode())
+            conexao.send(str(user_b_socket).encode())
+            print("user_b_status", str(user_b_status))
+            print("user_b_socket", str(user_b_socket))
+
+            # user_b_socket.send(b"GAME_INVITE")
+            # resposta = user_b_socket.recv(1024).decode()
+            # if resposta == "GAME_ACK":
+            #     # Se o usuário B aceitar, mude o status de ambos os jogadores para "ATIVO"
+            #     for user in connected_users:
+            #         if user["user"] == user_b or user["socket"] == conexao:
+            #             user["status"] = "ATIVO"
+            #     conexao.send(b"GAME_ACK")
+            # elif resposta == "GAME_NEG":
+            #     conexao.send(b"GAME_NEG")
         elif mensagem == b"EXIT":
             conexao.send(b"EXIT")
             break
@@ -123,17 +134,20 @@ tcp.bind(origem)
 tcp.listen(5)
 
 connected_users = []
-print("-----------------------------------------------")
-print("Porta gerada pelo arquivo random_post.py:", PORT)
-print("-----------------------------------------------")
-print("\nServidor TCP iniciado com sucesso!\n[IP]:", HOST, "\n[PORTA]:", PORT, "\n")
+print("---------------------------------------------------")
+print("| Porta gerada pelo arquivo random_post.py:", PORT, "|")
+print("|-------------------------------------------------|")
+print("| Servidor TCP iniciado com sucesso!              |")
+print("| [IP]:", HOST, "                                |")
+print("| [PORTA]:", PORT, "                                 |")
+print("---------------------------------------------------")
+
 running = True
 
 
 def server_thread():
     while running:
         conexao, cliente = tcp.accept()
-        print("client", conexao)
         username = conexao.recv(
             1024
         ).decode()  # Receba o nome de usuário quando um cliente se conectar
