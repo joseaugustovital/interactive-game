@@ -1,2 +1,154 @@
-2023-10-30 17:18:45.702870: Usuário 1 tornou-se INATIVO.
-2023-10-30 17:19:08.852423: Usuário joseaugustovital tornou-se INATIVO.
+2023-10-31 16:53:48.435123: Usuário joseaugustovital conectou-se.
+2023-10-31 16:53:48.435589: Usuário joseaugustovital tornou-se INATIVO.
+2023-10-31 16:53:54.883735: Usuário 1 conectou-se.
+2023-10-31 16:53:54.884127: Usuário 1 tornou-se INATIVO.
+2023-11-01 20:54:23.857917: Usuário joseaugustovital conectou-se.
+2023-11-01 20:54:23.858411: Usuário joseaugustovital tornou-se INATIVO.
+2023-11-01 20:54:27.252430: Usuário joseaugustovital solicitou a lista de usuários conectados.
+2023-11-01 20:54:41.363449: Usuário 1 conectou-se.
+2023-11-01 20:54:41.363964: Usuário 1 tornou-se INATIVO.
+2023-11-01 20:54:48.049182: Usuário 1 iniciou um jogo com joseaugustovital
+2023-11-01 21:15:48.848475: Usuário 1 conectou-se.
+2023-11-01 21:15:48.849346: Usuário 1 tornou-se INATIVO.
+2023-11-01 21:16:56.286238: Usuário 1 conectou-se.
+2023-11-01 21:16:56.287186: Usuário 1 tornou-se INATIVO.
+2023-11-01 21:17:10.063905: Usuário 1 conectou-se.
+2023-11-01 21:17:10.064408: Usuário 1 tornou-se INATIVO.
+2023-11-01 21:17:13.522240: Usuário 1 desconectou-se.
+2023-11-01 21:17:17.004259: Usuário 2 conectou-se.
+2023-11-01 21:17:17.004545: Usuário 2 tornou-se INATIVO.
+2023-11-01 21:19:07.050732: Usuário 1 conectou-se.
+2023-11-01 21:19:07.051387: Usuário 1 tornou-se INATIVO.
+2023-11-01 21:19:16.900999: Usuário 2 conectou-se.
+2023-11-01 21:19:16.901528: Usuário 2 tornou-se INATIVO.
+2023-11-01 21:19:19.608845: Usuário 2 iniciou um jogo com 1
+2023-11-01 21:20:02.327965: Usuário 2 conectou-se.
+2023-11-01 21:20:02.328994: Usuário 2 tornou-se INATIVO.
+2023-11-01 21:20:04.098392: Usuário 2 iniciou um jogo com 1
+2023-11-01 21:23:17.742252: Usuário 2 iniciou um jogo com 1
+2023-11-01 21:24:18.932361: Usuário 1 conectou-se.
+2023-11-01 21:24:18.932911: Usuário 1 tornou-se INATIVO.
+2023-11-01 21:24:24.758542: Usuário 2 conectou-se.
+2023-11-01 21:24:24.758813: Usuário 2 tornou-se INATIVO.
+2023-11-01 21:26:11.042241: Usuário 1 conectou-se.
+2023-11-01 21:26:11.043246: Usuário 1 tornou-se INATIVO.
+2023-11-01 21:26:14.785218: Usuário 2 conectou-se.
+2023-11-01 21:26:14.785467: Usuário 2 tornou-se INATIVO.
+2023-11-01 21:27:44.842037: Usuário 2 conectou-se.
+2023-11-01 21:27:44.842805: Usuário 2 tornou-se INATIVO.
+2023-11-01 21:27:48.621533: Usuário 1 conectou-se.
+2023-11-01 21:27:48.621937: Usuário 1 tornou-se INATIVO.
+2023-11-01 21:29:30.247094: Usuário 1 conectou-se.
+2023-11-01 21:29:30.248003: Usuário 1 tornou-se INATIVO.
+2023-11-01 21:29:41.265892: Usuário 2 conectou-se.
+2023-11-01 21:29:41.266252: Usuário 2 tornou-se INATIVO.
+2023-11-01 21:29:45.679233: Usuário 2 solicitou a lista de usuários jogando.
+2023-11-01 21:29:45.994958: Usuário 2 solicitou a lista de usuários conectados.
+2023-11-01 21:29:56.730714: Usuário 2 desconectou-se.
+2023-11-01 21:30:01.450045: Usuário 2 conectou-se.
+2023-11-01 21:30:01.450571: Usuário 2 tornou-se INATIVO.
+2023-11-01 21:30:03.739684: Usuário 2 iniciou um jogo com 1
+2023-11-01 21:34:50.185811: Usuário 1 conectou-se.
+2023-11-01 21:34:50.186362: Usuário 1 tornou-se INATIVO.
+2023-11-01 21:34:56.169361: Usuário 2 conectou-se.
+2023-11-01 21:34:56.169651: Usuário 2 tornou-se INATIVO.
+2023-11-01 21:34:57.224688: Usuário 2 iniciou um jogo com 1
+2023-11-01 21:36:46.858162: Usuário 1 conectou-se.
+2023-11-01 21:36:46.858822: Usuário 1 tornou-se INATIVO.
+2023-11-01 21:36:52.385395: Usuário 2 conectou-se.
+2023-11-01 21:36:52.385660: Usuário 2 tornou-se INATIVO.
+2023-11-01 21:36:53.275385: Usuário 2 iniciou um jogo com 1
+2023-11-01 21:40:18.685737: Usuário 1 conectou-se.
+2023-11-01 21:40:18.686411: Usuário 1 tornou-se INATIVO.
+2023-11-01 21:40:24.099667: Usuário 2 conectou-se.
+2023-11-01 21:40:24.099963: Usuário 2 tornou-se INATIVO.
+2023-11-01 21:42:18.614584: Usuário 1 conectou-se.
+2023-11-01 21:42:18.615459: Usuário 1 tornou-se INATIVO.
+2023-11-01 21:42:26.210970: Usuário 2 conectou-se.
+2023-11-01 21:42:26.211344: Usuário 2 tornou-se INATIVO.
+2023-11-01 21:42:27.312935: Usuário 2 iniciou um jogo com 1
+2023-11-01 21:45:00.213350: Usuário 1 tornou-se INATIVO.
+2023-11-01 21:45:08.750690: Usuário 2 tornou-se INATIVO.
+2023-11-01 21:46:39.942903: Usuário 2 tornou-se INATIVO.
+2023-11-01 21:47:25.644139: Usuário 1 tornou-se INATIVO.
+2023-11-02 21:30:34.350056: Usuário 1 tornou-se INATIVO.
+2023-11-02 21:30:40.417483: Usuário 2 tornou-se INATIVO.
+2023-11-02 21:31:04.644843: Usuário 2 tornou-se INATIVO.
+2023-11-02 21:50:29.123826: Usuário 1 tornou-se INATIVO.
+2023-11-02 21:53:22.713516: Usuário 1 tornou-se INATIVO.
+2023-11-02 21:53:59.428633: Usuário 1 tornou-se INATIVO.
+2023-11-02 21:54:14.213757: Usuário 2 tornou-se INATIVO.
+2023-11-02 21:57:28.320984: Usuário 1 tornou-se INATIVO.
+2023-11-02 21:57:34.017847: Usuário 2 tornou-se INATIVO.
+2023-11-02 22:02:05.024035: Usuário 1 tornou-se INATIVO.
+2023-11-02 22:02:11.334126: Usuário 2 tornou-se INATIVO.
+2023-11-02 22:04:28.438788: Usuário 1 tornou-se INATIVO.
+2023-11-02 22:04:32.985521: Usuário 2 tornou-se INATIVO.
+2023-11-02 22:06:02.410596: Usuário 1 tornou-se INATIVO.
+2023-11-02 22:06:11.751641: Usuário 2 tornou-se INATIVO.
+2023-11-02 22:16:05.067604: Usuário 1 tornou-se INATIVO.
+2023-11-02 22:16:11.414361: Usuário 2 tornou-se INATIVO.
+2023-11-02 22:18:25.507189: Usuário 1 tornou-se INATIVO.
+2023-11-02 22:18:29.537252: Usuário 2 tornou-se INATIVO.
+2023-11-02 22:20:30.971726: Usuário 1 tornou-se INATIVO.
+2023-11-02 22:21:29.852507: Usuário 1 tornou-se INATIVO.
+2023-11-02 22:22:28.602848: Usuário 1 tornou-se INATIVO.
+2023-11-02 22:22:32.451223: Usuário 2 tornou-se INATIVO.
+2023-11-02 22:23:54.731596: Usuário 1 tornou-se INATIVO.
+2023-11-02 22:23:59.046281: Usuário 2 tornou-se INATIVO.
+2023-11-02 22:24:50.145069: Usuário 1 tornou-se INATIVO.
+2023-11-02 22:24:54.956078: Usuário 2 tornou-se INATIVO.
+2023-11-02 22:25:55.501926: Usuário 1 tornou-se INATIVO.
+2023-11-02 22:26:00.541447: Usuário 2 tornou-se INATIVO.
+2023-11-02 22:27:58.152308: Usuário 1 tornou-se INATIVO.
+2023-11-02 22:28:03.191273: Usuário 2 tornou-se INATIVO.
+2023-11-02 22:29:39.458205: Usuário 1 tornou-se INATIVO.
+2023-11-02 22:31:07.722560: Usuário 1 tornou-se INATIVO.
+2023-11-02 22:40:45.795674: Usuário 1 tornou-se INATIVO.
+2023-11-02 22:40:52.477609: Usuário 2 tornou-se INATIVO.
+2023-11-02 22:42:10.079105: Usuário joseaugustovital tornou-se INATIVO.
+2023-11-02 22:51:15.813903: Usuário 1 tornou-se INATIVO.
+2023-11-02 22:51:20.395345: Usuário 2 tornou-se INATIVO.
+2023-11-02 22:51:57.975305: Usuário alison tornou-se INATIVO.
+2023-11-02 22:56:05.358949: Usuário alison tornou-se INATIVO.
+2023-11-02 23:02:07.908425: Usuário 1 tornou-se INATIVO.
+2023-11-02 23:02:12.321690: Usuário 2 tornou-se INATIVO.
+2023-11-02 23:03:17.800772: Usuário 1 tornou-se INATIVO.
+2023-11-02 23:03:21.628562: Usuário 2 tornou-se INATIVO.
+2023-11-02 23:07:42.159691: Usuário 1 tornou-se INATIVO.
+2023-11-02 23:07:46.486858: Usuário 2 tornou-se INATIVO.
+2023-11-02 23:13:25.158139: Usuário 1 tornou-se INATIVO.
+2023-11-02 23:13:31.790474: Usuário 2 tornou-se INATIVO.
+2023-11-02 23:16:00.571100: Usuário 1 tornou-se INATIVO.
+2023-11-02 23:16:04.369703: Usuário 2 tornou-se INATIVO.
+2023-11-02 23:17:28.537632: Usuário 1 tornou-se INATIVO.
+2023-11-02 23:17:39.864342: Usuário 2 tornou-se INATIVO.
+2023-11-02 23:30:32.419052: Usuário 1 tornou-se INATIVO.
+2023-11-02 23:46:13.239936: Usuário 1 tornou-se INATIVO.
+2023-11-02 23:46:31.706920: Usuário 1 tornou-se INATIVO.
+2023-11-02 23:46:37.182634: Usuário 2 tornou-se INATIVO.
+2023-11-02 23:56:32.135733: Usuário 1 tornou-se INATIVO.
+2023-11-03 00:06:23.948456: Usuário 1 tornou-se INATIVO.
+2023-11-03 00:06:31.232287: Usuário 2 tornou-se INATIVO.
+2023-11-03 00:09:24.706246: Usuário 1 tornou-se INATIVO.
+2023-11-03 00:09:31.415295: Usuário 2 tornou-se INATIVO.
+2023-11-03 00:09:40.883359: Usuário 2 tornou-se INATIVO.
+2023-11-03 00:09:50.585100: Usuário 2 tornou-se INATIVO.
+2023-11-03 00:10:00.319652: Usuário 2 tornou-se INATIVO.
+2023-11-03 00:10:15.447545: Usuário 2 tornou-se INATIVO.
+2023-11-03 00:10:27.728485: Usuário 1 tornou-se INATIVO.
+2023-11-03 00:11:55.327013: Usuário 1 tornou-se INATIVO.
+2023-11-03 00:11:58.381861: Usuário 2 tornou-se INATIVO.
+2023-11-03 00:14:46.004926: Usuário 1 tornou-se INATIVO.
+2023-11-03 00:14:52.125336: Usuário 2 tornou-se INATIVO.
+2023-11-03 00:15:18.359612: Usuário joseaugustovital tornou-se INATIVO.
+2023-11-03 00:27:48.466055: Usuário joseaugustovital tornou-se INATIVO.
+2023-11-03 00:28:26.074895: Usuário 1 tornou-se INATIVO.
+2023-11-03 00:29:06.103099: Usuário 1 tornou-se INATIVO.
+2023-11-03 00:29:19.442469: Usuário 1 tornou-se INATIVO.
+2023-11-03 00:33:51.666357: Usuário 1 tornou-se INATIVO.
+2023-11-03 00:58:10.068657: Usuário joseaugustovital tornou-se INATIVO.
+2023-11-03 00:58:15.504469: Usuário 1 tornou-se INATIVO.
+2023-11-03 00:58:30.813048: Usuário 2 tornou-se INATIVO.
+2023-11-03 01:16:25.321114: Usuário joseaugustovital tornou-se INATIVO.
+2023-11-03 01:16:34.372120: Usuário 2 tornou-se INATIVO.
