@@ -12,6 +12,17 @@ with open("port.txt", "w") as f:
     f.write(str(result))
 
 
+def send_large_data(conexao, data):
+    data = json.dumps(data).encode()
+    inicio = 0
+    tamanho = len(data)
+
+    while inicio < tamanho:
+        # Enviar pedaços de 1024 bytes
+        bytes_enviados = conexao.send(data[inicio : inicio + 1024])
+        inicio += bytes_enviados
+
+
 # Esta função log_event é usada para registrar eventos em um arquivo
 # de log chamado "game.log". Ela recebe uma mensagem de evento como
 # entrada e grava a data e hora atual juntamente com a mensagem no arquivo.
@@ -34,14 +45,16 @@ def handle_client(conexao, cliente, connected_users):
             log_event(f"Usuário {user['user']} tornou-se INATIVO.")
 
     username = user["user"]
+    user_port = user["porta"]
 
     # Retornando quem conectou no servidor
     print(
         "["
         + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         + "]"
-        + ": Conexão realizada por:",
-        username,
+        + ": Conexão realizada por",
+        username + " na porta",
+        user_port,
     )
 
     while True:
@@ -58,12 +71,15 @@ def handle_client(conexao, cliente, connected_users):
             lista_usuarios = [
                 user for user in connected_users if user["user"] != username
             ]
-
+            lista_usuarios_size = str(len(lista_usuarios))
             # Envia o tamanho da lista de usuários conectados
-            conexao.send(str(len(lista_usuarios)).encode())
+            conexao.send(lista_usuarios_size.encode())
 
             # Se o tamanho da lista for maior que 0, envie a lista de usuários conectados
-            if len(lista_usuarios) > 0:
+            if int(lista_usuarios_size) > 0:
+                print(json.dumps(lista_usuarios))
+                lista_usuarios_json = json.dumps(lista_usuarios)
+                # Envia a lista de usuários conectados
                 conexao.send(json.dumps(lista_usuarios).encode())
 
         # Caso LIST_USERS_PLAYING
@@ -82,12 +98,12 @@ def handle_client(conexao, cliente, connected_users):
             # Se o tamanho da lista for maior que 0, envie a lista de usuários conectados
             if len(lista_usuarios) > 0:
                 # Envia a lista de usuários conectados
-                conexao.send(json.dumps(lista_usuarios).encode())
+                send_large_data(conexao, lista_usuarios)
 
         elif mensagem.startswith(b"GAME_INI"):
             user = conexao.recv(1024)
             user_b = user.decode()
-            print("Usuário destino:", user_b)
+            print("\nUsuário destino:", user_b)
             # Encontre o socket do usuário B
             user_b_socket = None
             user_b_status = None
@@ -101,10 +117,8 @@ def handle_client(conexao, cliente, connected_users):
                 print(f"Usuário {user_b} não encontrado.")
                 continue
             # Envie uma mensagem para o usuário B perguntando se ele aceita ou não o convite para o jogo
-            conexao.send(str(user_b_status).encode())
-            conexao.send(str(user_b_socket).encode())
-            print("user_b_status", str(user_b_status))
-            print("user_b_socket", str(user_b_socket))
+            mensagem = str(user_b_status) + "\n" + str(user_b_socket)
+            conexao.send(mensagem.encode())
 
             # user_b_socket.send(b"GAME_INVITE")
             # resposta = user_b_socket.recv(1024).decode()
@@ -121,7 +135,10 @@ def handle_client(conexao, cliente, connected_users):
             break
 
         print("\nCliente..:", cliente)
+        if isinstance(mensagem, str):
+            mensagem = mensagem.encode()
         print("Mensagem.:", mensagem.decode())
+
     print("Finalizando conexão do cliente", cliente)
     conexao.close()
 

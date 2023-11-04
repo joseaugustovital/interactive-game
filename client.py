@@ -1,6 +1,7 @@
 import socket
 import json
 import getpass
+import time
 
 with open("port.txt", "r") as f:
     PORT = int(f.read())
@@ -8,6 +9,25 @@ with open("port.txt", "r") as f:
 HOST = "localhost"  # IP Servidor
 # Iniciando a conexão
 tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+
+def is_json(myjson):
+    try:
+        json_object = json.loads(myjson)
+    except ValueError as e:
+        return False
+    return True
+
+
+def recv_json(sock):
+    data = ""
+    while True:
+        try:
+            data += sock.recv(1024).decode()
+            return json.loads(data)
+        except json.JSONDecodeError:
+            # Ainda não recebemos o JSON completo, continue lendo
+            pass
 
 
 def start_p2p_connection(user_b, user_b_port_recv):
@@ -36,35 +56,40 @@ def start_p2p_connection(user_b, user_b_port_recv):
 # a execução de uma delas no servidor.
 def list_functions():
     # Listando as funções disponíveis
-    print("=======================================")
-    print("| Lista de funções disponíveis:       |")
-    print("|\t[1] - Listar usuários online  |")
-    print("|\t[2] - Listar usuários jogando |")
-    print("|\t[3] - Iniciar um jogo         |")
-    print("|\t[0] - Sair                    |")
-    print("=======================================")
+    print("-----------------FUNÇÕES-----------------")
+    print("|     [1] - Listar usuários online      |")
+    print("|     [2] - Listar usuários jogando     |")
+    print("|     [3] - Iniciar um jogo             |")
+    print("|     [0] - Sair                        |")
+    print("-----------------------------------------")
 
     # response receebe a opção escolhida pelo usuário
     response = input("Selecione uma opção:")
-    print("\n")
+    # caso Listar usuários online
     # caso Listar usuários online
     if response == "1":
         tcp.send(response.encode())
+        time.sleep(0.5)
 
-        # Recebe o tamanho da lista de usuários conectados
-        tamanho = int(tcp.recv(1024).decode())
+        # Recebe a lista de usuários conectados
+        data = tcp.recv(1024).decode()
 
-        # Se o tamanho da lista for igual a 0, imprima que não há usuários conectados.
-        if tamanho == 0:
+        # print(data)
+
+        if is_json(data[1:]):
+            lista_usuarios = json.loads(data[1:])
+        else:
+            print("Received data is not a valid JSON")
+            lista_usuarios = []
+
+        # Se a lista de usuários estiver vazia, imprima que não há usuários conectados.
+        if not lista_usuarios:
             print("Não há usuários conectados!\n")
         else:
-            # O servidor irá enviar, no formato JSON, a lista de usuários conectados.
-            lista_usuarios = json.loads(tcp.recv(1024).decode())
-
             # Imprime user, status, ip e porta de cada usuário.
             for user in lista_usuarios:
                 print(
-                    f"{user['user']} - {user['status']} - {user['ip']} - {user['porta']}\n"
+                    f"{user['user']} - {user['status']} - {user['ip']} - {user['porta']}"
                 )
 
     # caso Listar usuários jogando
@@ -82,7 +107,7 @@ def list_functions():
         # Caso contrário, o servidor irá enviar, no formato JSON, a lista de usuários jogando.
         else:
             # O servidor irá enviar, no formato JSON, a lista de usuários conectados.
-            lista_usuarios = json.loads(tcp.recv(1024).decode())
+            lista_usuarios = recv_json(tcp)
 
             # A lista de usuários jogando está no formato
             # Usuário(IP:PORTA) vs Usuário(IP:PORTA)
@@ -98,7 +123,6 @@ def list_functions():
         # "INATIVO" ou "ATIVO" por meio da opção [1] - Listar usuários online.
         # Portanto, aqui só é necessário perguntar ao usuário com quem ele deseja jogar.
         user_b = input("Digite o nome do usuário com quem deseja jogar: ")
-
         # Envia o nome do usuário para o servidor
         tcp.send(user_b.encode())
 
@@ -108,20 +132,19 @@ def list_functions():
         # irá enviar para o usuário "user_b_ATIVO".
         # Se "user_b_ATIVO", imprime mensagem que user_b não pode jogar.
         # Se "user_b_INATIVO", imprime mensagem que user_b será notificado sobre o jogo.
-        mensagem = tcp.recv(1024).decode()
-        user_b_port_response = tcp.recv(1024).decode()
+
+        mensagem_recv = tcp.recv(1024)
+        complete_msg = mensagem_recv.decode().split("\n")
+        mensagem = complete_msg[0]
+        user_b_port_response = complete_msg[1]
+
         print("Status do jogador destino: ", mensagem)
-        print("Porta do jogador destino: \n", user_b_port_response)
+        print("Porta do jogador destino: ", user_b_port_response)
         if mensagem == "ATIVO":
             print(f"O usuário {user_b} não pode jogar no momento!")
         elif mensagem == "INATIVO":
-            print(f"O usuário {user_b} será notificado sobre o jogo!")
-            # p2p_connection = start_p2p_connection(user_b, user_b_port_response)
-            # print("p2p_connection", p2p_connection)
-            # if p2p_connection is not None:
-            #     print(f"Conexão P2P com {user_b} iniciada!")
-            # else:
-            #     print(f"Não foi possível iniciar a conexão P2P com {user_b}!")
+            print(f"O usuário {user_b} será notificado sobre o jogo!\n")
+
         else:
             print("usuário não encontrado!")
 
@@ -166,15 +189,14 @@ def create_user():
 
 
 def login_request():
-    print("-----------------------------------")
-    print("Porta recebida pelo servidor:", PORT)
-    print("-----------------------------------\n")
+    print("------------------PORTA------------------")
+    print("| Porta recebida pelo servidor:", PORT, "  |")
+    print("-----------------------------------------\n")
 
-    print("--------------LOGIN----------------")
-    user = input("Usuário: ")
-    password = getpass.getpass("Senha: ")
-    print("-----------------------------------")
-    print("\n")
+    print("------------------LOGIN------------------")
+    user = input("| Usuário: ")
+    password = getpass.getpass("| Senha:         ")
+    print("-----------------------------------------")
     credentials = get_credentials()
 
     for key, credential in credentials.items():
@@ -184,7 +206,8 @@ def login_request():
             and user == credential["user"]
             and password == credential["password"]
         ):
-            print("Usuário autenticado com sucesso!\n")
+            print("| Usuário autenticado com sucesso!      |")
+            print("-----------------------------------------\n")
             return True, user
 
     print("Usuário não encontrado!\n")
