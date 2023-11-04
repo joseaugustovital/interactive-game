@@ -38,16 +38,18 @@ def start_p2p_connection(user_b, user_b_port_recv):
     # Aqui, estou apenas usando placeholders
     user_b_ip = "localhost"
     user_b_port = int(user_b_port_recv)
-
+    print(user_b_port)
+    print(f"Esperando conexão P2P de {user_b}...")
+    resp = (user_b_ip, user_b_port)
+    print(resp)
     try:
         # Tenta estabelecer uma conexão com o usuário B
-        s.connect((user_b_ip, user_b_port))
+        s.connect(user_b_port)
+        print(s)
         print(f"Conexão P2P com {user_b} iniciada!")
         return s
     except Exception as e:
-        print(
-            f"start_p2p_connection: Não foi possível iniciar a conexão P2P com {user_b}!"
-        )
+        print(f"Não foi possível iniciar a conexão")
         print(f"Erro: {e}")
         return None
 
@@ -86,11 +88,48 @@ def list_functions():
         if not lista_usuarios:
             print("Não há usuários conectados!\n")
         else:
-            # Imprime user, status, ip e porta de cada usuário.
+            max_len_user = len("User")
+            max_len_status = len("Status")
+            max_len_ip = len("IP")
+            max_len_porta = len("Porta")
+
+            for user in lista_usuarios:
+                max_len_user = max(max_len_user, len(user["user"]))
+                max_len_status = max(max_len_status, len(user["status"]))
+                max_len_ip = max(max_len_ip, len(user["ip"]))
+                max_len_porta = max(max_len_porta, len(str(user["porta"])))
+
+            total_len = max_len_user + max_len_status + max_len_ip + max_len_porta + 13
+
+            print("\n")
+            print("{:-^{}}".format(" USUÁRIOS-ONLINE ", total_len))
+            print(
+                "| {:^{}} | {:^{}} | {:^{}} | {:^{}} |".format(
+                    "User",
+                    max_len_user,
+                    "Status",
+                    max_len_status,
+                    "IP",
+                    max_len_ip,
+                    "Porta",
+                    max_len_porta,
+                )
+            )
+            print("{:-^{}}".format("", total_len))
             for user in lista_usuarios:
                 print(
-                    f"{user['user']} - {user['status']} - {user['ip']} - {user['porta']}"
+                    "| {:^{}} | {:^{}} | {:^{}} | {:^{}} |".format(
+                        user["user"],
+                        max_len_user,
+                        user["status"],
+                        max_len_status,
+                        user["ip"],
+                        max_len_ip,
+                        user["porta"],
+                        max_len_porta,
+                    )
                 )
+            print("{:-^{}}\n".format("", total_len))
 
     # caso Listar usuários jogando
     elif response == "2":
@@ -144,7 +183,44 @@ def list_functions():
             print(f"O usuário {user_b} não pode jogar no momento!")
         elif mensagem == "INATIVO":
             print(f"O usuário {user_b} será notificado sobre o jogo!\n")
+            # Inicia a conexão P2P com o usuário B
+            user_b_port = int(user_b_port_response)
 
+        try:
+            user_b_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            p2p = (HOST, user_b_port)
+            print(p2p)
+            while True:
+                try:
+                    # Tenta estabelecer uma conexão com o usuário B
+                    user_b_socket.connect(p2p)
+                    user_b_socket.send("GAME_INI".encode())
+                    break
+                except Exception as e:
+                    print("Conexão recusada, tentando novamente em 5 segundos...")
+                    time.sleep(5)
+            print(user_b_socket)
+            user_b_socket.send("GAME_INI".encode())
+        except Exception as e:
+            print("Não foi possível iniciar a conexão P2P com o usuário B!")
+            print(f"Erro: {e}")
+            return
+            # Recebe a resposta do usuário B
+        try:
+            resposta = user_b_socket.recv(1024).decode()
+        except ConnectionRefusedError:
+            print(
+                "Conexão recusada. O servidor pode não estar disponível ou a porta pode estar fechada."
+            )
+        except Exception as e:
+            print(f"Erro: {e}")
+            # Se o usuário B aceitar o convite, inicie o jogo
+            if resposta == "GAME_ACK":
+                print("Jogo iniciado!")
+                # Inicia o jogo
+                # game(user_b_socket)
+            else:
+                print("O usuário B não aceitou o convite para o jogo!")
         else:
             print("usuário não encontrado!")
 

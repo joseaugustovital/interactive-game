@@ -77,7 +77,6 @@ def handle_client(conexao, cliente, connected_users):
 
             # Se o tamanho da lista for maior que 0, envie a lista de usuários conectados
             if int(lista_usuarios_size) > 0:
-                print(json.dumps(lista_usuarios))
                 lista_usuarios_json = json.dumps(lista_usuarios)
                 # Envia a lista de usuários conectados
                 conexao.send(json.dumps(lista_usuarios).encode())
