@@ -159,6 +159,7 @@ def list_functions():
         user_b_port_response = complete_msg[1]
 
         print("Status do jogador destino: ", mensagem)
+
         print("Porta do jogador destino: ", user_b_port_response)
         if mensagem == "ATIVO":
             print(f"O usuário {user_b} não pode jogar no momento!")
@@ -166,48 +167,67 @@ def list_functions():
             # Estabelece a conexão P2P com o usuário B
             user_a_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             # gere uma porta aleatória para o usuário A se conectar
-            user_a_socket.bind(("", 0))
-
+            user_a_socket.bind(("localhost", 0))
+            # registre a porta aleatória gerada
+            user_a_port = user_a_socket.getsockname()[1]
             user_b_port = int(user_b_port_response)
             print("Porta do usuário B:", user_b_port)
             user_b_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             user_b_socket.bind(("localhost", user_b_port))
-            while True:
-                try:
-                    print(f"Tentando estabelecer conexão com {user_b}")
 
-                    # Tenta estabelecer uma conexão com o usuário B
-                    # pega a porta do usuário B e se conecta a ele
-                    user_a_socket.connect(
-                        ("localhost", user_b_port)
-                    )  # Adicionado a linha para conectar o usuário A ao usuário B
+            print(f"Tentando estabelecer conexão com {user_b}")
 
-                    break
-                except ConnectionRefusedError:
-                    print("Conexão recusada, tentando novamente em 5 segundos...")
-                    time.sleep(5)
-                except Exception as e:
-                    print(f"Erro: {e}")
-                    break
             print(user_a_socket)
             print(user_b_socket)
             # Envia uma mensagem para o usuário B perguntando se ele aceita ou não o convite para o jogo
-            # faca aparecer na tela do usuario b a mensagem de convite para o jogo e aguarde a resposta
-            # do usuario b para iniciar o jogo ou nao (GAME_ACK ou GAME_NACK) e imprima na tela do usuario a
-            # resposta do usuario b (GAME_ACK ou GAME_NACK)
+            # antes de solicitar o input verifique se esta no terminal do usuario b
+            # se sim, solicite o input do usuario b e envie para o usuario a
+            if user_b_socket.getsockname()[1] == int(user_b_port_response):
+                convite_user_b = input("Digite GAME_ACK ou GAME_NEG:")
+                user_a_socket.sendto(
+                    convite_user_b.encode(), ("localhost", user_b_port)
+                )
+            else:
+                print("Aguardando resposta do usuário B...")
+                while True:
+                    try:
+                        convite, _ = user_b_socket.recvfrom(
+                            1024
+                        )  # Recebe a mensagem e ignora o endereço do remetente
+                        mensagem = (
+                            convite.decode()
+                        )  # Decodifica a mensagem de bytes para string
+                        print(
+                            f"Mensagem recebida do usuário B: {mensagem}"
+                        )  # Imprime a mensagem recebida no terminal do usuário A
+                        break
+                    except Exception as e:
+                        print(f"Erro ao receber mensagem: {e}")
+                        break
 
-            mensagem = input("Digite a mensagem:")
-            user_a_socket.send(mensagem.encode())
+                # Envia a resposta do usuário B para o usuário A
+                user_a_socket.sendto(convite, ("localhost", user_b_port))
 
             # usuario b recebe a mensagem
-            convite = user_b_socket.recv(1024).decode()  # Recebe a mensagem
-            print(
-                "Mensagem recebida:", convite
-            )  # Decodifica a mensagem de bytes para string e imprime
-            
+            while True:
+                try:
+                    convite, _ = user_b_socket.recvfrom(
+                        1024
+                    )  # Recebe a mensagem e ignora o endereço do remetente
+                    mensagem = (
+                        convite.decode()
+                    )  # Decodifica a mensagem de bytes para string
+                    print(
+                        f"Mensagem recebida do usuário B: {mensagem}"
+                    )  # Imprime a mensagem recebida no terminal do usuário A
+                    break
+                except Exception as e:
+                    print(f"Erro ao receber mensagem: {e}")
+                    break
+
             # Recebe a resposta do usuário B
             # Se o usuário B aceitar o convite, inicie o jogo
-            if convite == "GAME_ACK":
+            if convite.decode() == "GAME_ACK":
                 print("Jogo iniciado!")
                 # Inicia o jogo
                 # game(user_b_socket)
@@ -245,15 +265,18 @@ def create_user():
     password = getpass.getpass("Digite a sua senha: ")
     print("\n")
 
-    if user in credential:
-        print("Nome de usuário já está cadastrado!")
-    else:
-        newUser = {"name": name, "user": user, "password": password}
-        credential[user] = newUser
+    # Verifica se o usuário já existe no arquivo credentials.json
+    for key, value in credential.items():
+        if value["user"] == user:
+            print("Nome de usuário já está cadastrado!")
+            return
 
-        with open("credentials.json", "w") as content:
-            json.dump(credential, content, indent=4)
-        print("Usuário cadastrado com sucesso!")
+    newUser = {"name": name, "user": user, "password": password, "logged": False}
+    credential[len(credential.items())] = newUser
+
+    with open("credentials.json", "w") as content:
+        json.dump(credential, content, indent=4)
+    print("Usuário cadastrado com sucesso!")
 
 
 def login_request():
@@ -269,20 +292,25 @@ def login_request():
             and "password" in credential
             and user == credential["user"]
             and password == credential["password"]
+            and credential["logged"] == False
         ):
+            credential["logged"] = True
             print("| Usuário autenticado com sucesso!      |")
             print("-----------------------------------------\n")
+
             return True, user
 
     print("Usuário não encontrado!\n")
     response = input("Deseja cadastrar-se? [S] SIM or [N] NÃO: ").strip().upper()
-    if response == "Y":
+    if response == "S":
         create_user()
+        return False, None  # Adicionado retorno após a criação do usuário
     elif response == "N":
         print("\n")
         return False, None
     else:
         print("Comando inválido!")
+        return False, None  # Adicionado retorno para o caso de comando inválido
 
 
 # Login do usuário. Login_request() retorna
@@ -310,3 +338,4 @@ while retorno != False:
 
 # Fechando o Socket
 tcp.close()
+˜˜`
