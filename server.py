@@ -49,12 +49,7 @@ def handle_client(conexao, cliente, connected_users):
 
     # Retornando quem conectou no servidor
     print(
-        "["
-        + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        + "]"
-        + ": Conexão realizada por",
-        username + " na porta",
-        cliente[1],
+        f"[{datetime.datetime.now()}]: Conexão realizada por {username} na porta {cliente[1]}"
     )
 
     while True:
@@ -103,7 +98,7 @@ def handle_client(conexao, cliente, connected_users):
             # envia a lista de usuarios conectados
             user = conexao.recv(1024)
             user_b = user.decode()
-            print("\nUsuário destino:", user_b)
+            print(f"\nUsuário destino: {user_b}")
             # Encontre o socket do usuário B
             user_b_socket = None
             user_b_status = None
@@ -117,29 +112,28 @@ def handle_client(conexao, cliente, connected_users):
                 print(f"Usuário {user_b} não encontrado.")
                 continue
             # Envie uma mensagem para o usuário B perguntando se ele aceita ou não o convite para o jogo
-            b_status_port = (
-                str(user_b_status)
-                + "\n"
-                + str(user_b_socket)
-                + "\n"
-                + str(connected_users)
-            )
+            b_status_port = f"{user_b_status}\n{user_b_socket}\n{connected_users}"
+
             conexao.send(b_status_port.encode())
 
         elif mensagem == b"EXIT":
             conexao.send(b"EXIT")
             break
 
-        print("\nCliente..:", cliente)
+        print(f"\nCliente..: {cliente}")
         if isinstance(mensagem, str):
             mensagem = mensagem.encode()
-        print("Mensagem.:", mensagem.decode())
+        print(f"Mensagem.: {mensagem.decode()}")
 
-    print("Finalizando conexão do cliente", cliente)
+    print(f"Finalizando conexão do cliente {cliente}")
     # remove o usuário da lista de usuários conectados
-    for user in connected_users:
-        if user["ip"] == cliente[0] and user["porta"] == cliente[1]:
-            connected_users.remove(user)
+    connected_users.remove(
+        next(
+            user
+            for user in connected_users
+            if user["ip"] == cliente[0] and user["porta"] == cliente[1]
+        )
+    )
     conexao.close()
 
 
@@ -152,11 +146,11 @@ tcp.listen(5)
 
 connected_users = []
 print("---------------------------------------------------")
-print("| Porta gerada pelo arquivo random_post.py:", PORT, "|")
+print(f"| Porta gerada pelo arquivo random_post.py: {PORT} |")
 print("|-------------------------------------------------|")
-print("| Servidor TCP iniciado com sucesso!              |")
-print("| [IP]:", HOST, "                                |")
-print("| [PORTA]:", PORT, "                                 |")
+print(f"| Servidor TCP iniciado com sucesso!              |")
+print(f"| [IP]: {HOST}                                 |")
+print(f"| [PORTA]: {PORT}                                  |")
 print("---------------------------------------------------")
 
 running = True

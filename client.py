@@ -2,7 +2,6 @@ import socket
 import json
 import getpass
 import time
-import threading
 
 
 with open("port.txt", "r") as f:
@@ -14,6 +13,9 @@ tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 
 def list_user_online():
+    """
+    Lista os usuários online.
+    """
     response = "1"
     tcp.send(response.encode())
     time.sleep(0.5)
@@ -77,14 +79,20 @@ def list_user_online():
 
 
 def is_json(myjson):
+    """
+    Verifica se uma string é um objeto JSON válido.
+    """
     try:
-        json_object = json.loads(myjson)
+        json.loads(myjson)
     except ValueError:
         return False
     return True
 
 
 def recv_json(sock):
+    """
+    Recebe um objeto JSON de um socket.
+    """
     data = ""
     while True:
         try:
@@ -96,6 +104,9 @@ def recv_json(sock):
 
 
 def receive_messages():
+    """
+    Recebe mensagens do servidor.
+    """
     while True:
         try:
             data = tcp.recv(1024)
@@ -106,9 +117,10 @@ def receive_messages():
             break
 
 
-# Função para listar as funções disponíveis e solicitar
-# a execução de uma delas no servidor.
 def list_functions():
+    """
+    Lista as funções disponíveis e solicita a execução de uma delas no servidor.
+    """
     # Listando as funções disponíveis
     print("-----------------FUNÇÕES-----------------")
     print("|     [1] - Listar usuários online      |")
@@ -117,9 +129,8 @@ def list_functions():
     print("|     [0] - Sair                        |")
     print("-----------------------------------------")
 
-    # response receebe a opção escolhida pelo usuário
+    # response recebe a opção escolhida pelo usuário
     response = input("Selecione uma opção:")
-    # caso Listar usuários online
     # caso Listar usuários online
     if response == "1":
         list_user_online()
@@ -139,7 +150,7 @@ def list_functions():
         # Caso contrário, o servidor irá enviar, no formato JSON, a lista de usuários jogando.
         else:
             # O servidor irá enviar, no formato JSON, a lista de usuários conectados.
-            lista_usuarios = recv_json(tcp)
+            lista_usuarios = json.loads(tcp.recv(1024).decode())
 
             # A lista de usuários jogando está no formato
             # Usuário(IP:PORTA) vs Usuário(IP:PORTA)
@@ -172,9 +183,8 @@ def list_functions():
         user_b_port_response = complete_msg[1]
         list_connected_users = complete_msg[2]
 
-        print("Status do jogador destino: ", mensagem)
+        print(f"Status do jogador destino: {mensagem}")
 
-        # print("Porta do jogador destino: ", user_b_port_response)
         if mensagem == "ATIVO":
             print(f"O usuário {user_b} não pode jogar no momento!")
         elif mensagem == "INATIVO":
@@ -184,8 +194,8 @@ def list_functions():
             user_b_port = int(user_b_port_response)
 
             # printe as portas
-            print("Porta do usuário A:", user_a_port)
-            print("Porta do usuário B:", user_b_port)
+            print(f"Porta do usuário A: {user_a_port}")
+            print(f"Porta do usuário B: {user_b_port}")
 
     elif response == "0":
         print("Saindo...")
@@ -196,6 +206,9 @@ def list_functions():
 
 
 def get_credentials():
+    """
+    Obtém as credenciais do usuário a partir do arquivo credentials.json.
+    """
     try:
         with open("credentials.json", "r") as content:
             credenciais = json.load(content)
@@ -210,6 +223,9 @@ def get_credentials():
 
 
 def create_user():
+    """
+    Cria um novo usuário.
+    """
     credential = get_credentials()
     name = input("Digite o seu nome: ")
     user = input("Digite o seu usuário: ")
@@ -217,13 +233,13 @@ def create_user():
     print("\n")
 
     # Verifica se o usuário já existe no arquivo credentials.json
-    for key, value in credential.items():
-        if value["user"] == user:
+    for _, value in credential.items():
+        if "user" in value and value["user"] == user:
             print("Nome de usuário já está cadastrado!")
             return
 
-    newUser = {"name": name, "user": user, "password": password, "logged": False}
-    credential[len(credential.items())] = newUser
+    newUser = {"name": name, "user": user, "password": password}
+    credential[len(credential)] = newUser
 
     with open("credentials.json", "w") as content:
         json.dump(credential, content, indent=4)
@@ -231,25 +247,28 @@ def create_user():
 
 
 def login_request():
+    """
+    Realiza o login do usuário.
+    """
     print("------------------LOGIN------------------")
     user = input("| Usuário: ")
     password = getpass.getpass("| Senha:         ")
     print("-----------------------------------------")
     credentials = get_credentials()
 
-    for key, credential in credentials.items():
+    for _, credential in credentials.items():
         if (
             "user" in credential
             and "password" in credential
             and user == credential["user"]
             and password == credential["password"]
-            # and credential["logged"] == False
+            # and not credential["logged"]
         ):
             print("| Usuário autenticado com sucesso!      |")
             print("-----------------------------------------\n")
             # Atualiza o arquivo credentials.json com o usuário logado (logged = True)
+            # credential["logged"] = True
             # with open("credentials.json", "w") as content:
-            #     credential["logged"] = True
             #     json.dump(credentials, content, indent=4)
 
             return True, user
@@ -258,27 +277,25 @@ def login_request():
     response = input("Deseja cadastrar-se? [S] SIM or [N] NÃO: ").strip().upper()
     if response == "S":
         create_user()
-        return False, None  # Adicionado retorno após a criação do usuário
+        return False, None
     elif response == "N":
         print("\n")
         return False, None
     else:
         print("Comando inválido!")
-        return False, None  # Adicionado retorno para o caso de comando inválido
+        return False, None
 
 
-# Login do usuário. Login_request() retorna
-# True para result e o usuário para user, caso o login tenha sido efetuado com sucesso.
-# Caso contrário, retorna False para result e None para user.
 print("------------------PORTA------------------")
-print("| Porta recebida pelo servidor:", PORT, "  |")
+print(f"| Porta recebida pelo servidor: {PORT}  |")
 print("-----------------------------------------\n")
 result, user = login_request()
 
 # Este loop entra em ação caso o login não tenha sido efetuado com sucesso.
 # O usuário poderá tentar logar novamente ou cadastrar-se.
-while result != True:
+while not result:
     result, user = login_request()
+
 destino = (HOST, PORT)
 tcp.connect(destino)
 
@@ -287,7 +304,7 @@ tcp.send(user.encode())
 
 retorno = True
 
-while retorno != False:
+while retorno:
     retorno = list_functions()
 
 # Fechando o Socket
