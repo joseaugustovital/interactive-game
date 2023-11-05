@@ -3,6 +3,7 @@ import threading
 import json
 import datetime
 from random_port import result
+import json
 
 HOST = "127.0.0.1"  # Endereco IP do Servidor
 PORT = result  # Porta que o Servidor está
@@ -10,6 +11,16 @@ PORT = result  # Porta que o Servidor está
 # Escreve a porta no arquivo
 with open("port.txt", "w") as f:
     f.write(str(result))
+
+
+# crie um metoodo para atribuir como false o campo logged de quem se desconectou
+# e o status para INATIVO   para que o usuário não apareça na lista de usuários conectados
+# enquanto ele não estiver conectado
+def reset_user_info(user, connected_users):
+    for element in connected_users:
+        if element["user"] == user:
+            element["logged"] = False
+            element["status"] = "INATIVO"
 
 
 def send_large_data(conexao, data):
@@ -36,7 +47,7 @@ def log_event(event):
 def handle_client(conexao, cliente, connected_users):
     # Receba o nome de usuário quando um cliente se conectar
     username = conexao.recv(1024).decode()
-
+    print("Usuário conectado:", username)
     # Adicionar o usuário à lista de usuários conectados
     connected_users.append(
         {
@@ -129,11 +140,25 @@ def handle_client(conexao, cliente, connected_users):
         print("Mensagem.:", mensagem.decode())
 
     print("Finalizando conexão do cliente", cliente)
-    # remove o usuário da lista de usuários conectados
-    for user in connected_users:
-        if user["ip"] == cliente[0] and user["porta"] == cliente[1]:
-            connected_users.remove(user)
-    conexao.close()
+    # precisamos alterar o "logged": true para "logged": false
+    # para que o usuário possa se conectar novamente
+    # e também precisamos alterar o status para INATIVO
+    # para que o usuário não apareça na lista de usuários conectados
+    # enquanto ele não estiver conectado
+    # Lê o conteúdo do arquivo "credentials.json" e armazena em uma variável
+    with open("credentials.json", "r") as content:
+        credentials = json.load(content)
+
+    # Atualiza a propriedade "logged" do usuário para False
+    for user in credentials["users"]:
+        if user["username"] == username:
+            user["logged"] = False
+
+    # Escreve as alterações no arquivo "credentials.json"
+    with open("credentials.json", "w") as content:
+        if user["username"] == username:
+            user["logged"] = False
+        json.dump(credentials, content, indent=4)
 
 
 tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

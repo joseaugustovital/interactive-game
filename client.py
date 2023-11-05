@@ -294,9 +294,12 @@ def login_request():
             and password == credential["password"]
             and credential["logged"] == False
         ):
-            credential["logged"] = True
             print("| Usuário autenticado com sucesso!      |")
             print("-----------------------------------------\n")
+            # Atualiza o arquivo credentials.json com o usuário logado (logged = True)
+            with open("credentials.json", "w") as content:
+                credential["logged"] = True
+                json.dump(credentials, content, indent=4)
 
             return True, user
 
@@ -338,4 +341,3 @@ while retorno != False:
 
 # Fechando o Socket
 tcp.close()
-˜˜`
