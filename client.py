@@ -24,12 +24,11 @@ def list_user_online():
     if is_json(data[1:]):
         lista_usuarios = json.loads(data[1:])
     else:
-        print("Received data is not a valid JSON")
         lista_usuarios = []
 
     # Se a lista de usuários estiver vazia, imprima que não há usuários conectados.
     if not lista_usuarios:
-        print("Não há usuários conectados!\n")
+        print("\nNão há usuários conectados!\n")
     else:
         max_len_user = len("User")
         max_len_status = len("Status")
@@ -78,7 +77,7 @@ def list_user_online():
 def is_json(myjson):
     try:
         json_object = json.loads(myjson)
-    except ValueError as e:
+    except ValueError:
         return False
     return True
 
@@ -92,30 +91,6 @@ def recv_json(sock):
         except json.JSONDecodeError:
             # Ainda não recebemos o JSON completo, continue lendo
             pass
-
-
-def start_p2p_connection(user_b, user_b_port_recv):
-    # Cria um novo socket
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-    # O endereço IP e a porta do usuário B precisariam ser conhecidos de antemão
-    # Aqui, estou apenas usando placeholders
-    user_b_ip = "localhost"
-    user_b_port = int(user_b_port_recv)
-    print(user_b_port)
-    print(f"Esperando conexão P2P de {user_b}...")
-    resp = (user_b_ip, user_b_port)
-    print(resp)
-    try:
-        # Tenta estabelecer uma conexão com o usuário B
-        s.connect(user_b_port)
-        print(s)
-        print(f"Conexão P2P com {user_b} iniciada!")
-        return s
-    except Exception as e:
-        print(f"Não foi possível iniciar a conexão")
-        print(f"Erro: {e}")
-        return None
 
 
 # Função para listar as funções disponíveis e solicitar
@@ -188,44 +163,56 @@ def list_functions():
         if mensagem == "ATIVO":
             print(f"O usuário {user_b} não pode jogar no momento!")
         elif mensagem == "INATIVO":
-            print(f"O usuário {user_b} será notificado sobre o jogo!\n")
-            # Inicia a conexão P2P com o usuário B
-            user_b_port = int(user_b_port_response)
+            # Estabelece a conexão P2P com o usuário B
+            user_a_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            # gere uma porta aleatória para o usuário A se conectar
+            user_a_socket.bind(("", 0))
 
-        try:
-            user_b_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            p2p = (HOST, user_b_port)
-            print(p2p)
+            user_b_port = int(user_b_port_response)
+            user_b_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            user_b_socket.bind(("localhost", user_b_port))
             while True:
                 try:
+                    print(f"Tentando estabelecer conexão com {user_b}")
+                    user_a_socket.connect(("localhost", user_b_port))
+                    user_b_socket.connect(("localhost", user_a_socket.getsockname()[1]))
                     # Tenta estabelecer uma conexão com o usuário B
-                    user_b_socket.connect(p2p)
+                    # pega a porta do usuário B e se conecta a ele
+                    user_a_socket.send("GAME_INI".encode())
                     user_b_socket.send("GAME_INI".encode())
                     break
-                except Exception as e:
+                except ConnectionRefusedError:
                     print("Conexão recusada, tentando novamente em 5 segundos...")
                     time.sleep(5)
+                except Exception as e:
+                    print(f"Erro: {e}")
+                    break
+            print(user_a_socket)
             print(user_b_socket)
-            user_b_socket.send("GAME_INI".encode())
-        except Exception as e:
-            print("Não foi possível iniciar a conexão P2P com o usuário B!")
-            print(f"Erro: {e}")
-            return
+            # Envia uma mensagem para o usuário B perguntando se ele aceita ou não o convite para o jogo
+            user_a_socket.send("GAME_INI".encode())
+
+            # usuario b recebe a mensagem
+            mensagem = user_b_socket.recv(1024).decode()
+
+            print("mensagem", mensagem)
             # Recebe a resposta do usuário B
-        try:
-            resposta = user_b_socket.recv(1024).decode()
-        except ConnectionRefusedError:
-            print(
-                "Conexão recusada. O servidor pode não estar disponível ou a porta pode estar fechada."
-            )
-        except Exception as e:
-            print(f"Erro: {e}")
+            resposta = None
+            try:
+                resposta = user_b_socket.recv(1024).decode()
+                print("resposta", resposta)
+            except ConnectionRefusedError:
+                print(
+                    "Conexão recusada. O servidor pode não estar disponível ou a porta pode estar fechada."
+                )
+            except Exception as e:
+                print(f"Erro: {e}")
             # Se o usuário B aceitar o convite, inicie o jogo
-            if resposta == "GAME_ACK":
+            if resposta and resposta == "GAME_ACK":
                 print("Jogo iniciado!")
                 # Inicia o jogo
                 # game(user_b_socket)
-            else:
+            elif resposta:
                 print("O usuário B não aceitou o convite para o jogo!")
         else:
             print("usuário não encontrado!")
@@ -271,10 +258,6 @@ def create_user():
 
 
 def login_request():
-    print("------------------PORTA------------------")
-    print("| Porta recebida pelo servidor:", PORT, "  |")
-    print("-----------------------------------------\n")
-
     print("------------------LOGIN------------------")
     user = input("| Usuário: ")
     password = getpass.getpass("| Senha:         ")
@@ -293,10 +276,11 @@ def login_request():
             return True, user
 
     print("Usuário não encontrado!\n")
-    response = input("Deseja cadastrar-se? [Y] yes or [N] no: ").strip().upper()
+    response = input("Deseja cadastrar-se? [S] SIM or [N] NÃO: ").strip().upper()
     if response == "Y":
         create_user()
     elif response == "N":
+        print("\n")
         return False, None
     else:
         print("Comando inválido!")
@@ -305,6 +289,9 @@ def login_request():
 # Login do usuário. Login_request() retorna
 # True para result e o usuário para user, caso o login tenha sido efetuado com sucesso.
 # Caso contrário, retorna False para result e None para user.
+print("------------------PORTA------------------")
+print("| Porta recebida pelo servidor:", PORT, "  |")
+print("-----------------------------------------\n")
 result, user = login_request()
 
 # Este loop entra em ação caso o login não tenha sido efetuado com sucesso.

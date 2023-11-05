@@ -34,18 +34,18 @@ def log_event(event):
 # A função handle_client é chamada para lidar com cada cliente conectado ao servidor.
 # Ela recebe a conexão, informações do cliente e a lista de usuários conectados como argumentos.
 def handle_client(conexao, cliente, connected_users):
-    # Atribuindo ao usuário recém conectado o status como ATIVO
-    for user in connected_users:
-        # Verifique se o usuário conectado é o mesmo que o usuário na lista de usuários conectados
-        if user["ip"] == cliente[0] and user["porta"] == cliente[1]:
-            # Se for o mesmo usuário, altere o status para "INATIVO"
-            user["status"] = "INATIVO"
+    # Receba o nome de usuário quando um cliente se conectar
+    username = conexao.recv(1024).decode()
 
-            # Registre o evento no arquivo de log
-            log_event(f"Usuário {user['user']} tornou-se INATIVO.")
-
-    username = user["user"]
-    user_port = user["porta"]
+    # Adicionar o usuário à lista de usuários conectados
+    connected_users.append(
+        {
+            "user": username,
+            "status": "INATIVO",  # Atribuir o status como "ATIVO" quando um cliente se conectar
+            "ip": cliente[0],
+            "porta": cliente[1],
+        }
+    )
 
     # Retornando quem conectou no servidor
     print(
@@ -54,7 +54,7 @@ def handle_client(conexao, cliente, connected_users):
         + "]"
         + ": Conexão realizada por",
         username + " na porta",
-        user_port,
+        cliente[1],
     )
 
     while True:
@@ -99,7 +99,7 @@ def handle_client(conexao, cliente, connected_users):
                 # Envia a lista de usuários conectados
                 send_large_data(conexao, lista_usuarios)
 
-        elif mensagem.startswith(b"GAME_INI"):
+        elif mensagem.decode() == "GAME_INI":
             user = conexao.recv(1024)
             user_b = user.decode()
             print("\nUsuário destino:", user_b)
@@ -116,19 +116,9 @@ def handle_client(conexao, cliente, connected_users):
                 print(f"Usuário {user_b} não encontrado.")
                 continue
             # Envie uma mensagem para o usuário B perguntando se ele aceita ou não o convite para o jogo
-            mensagem = str(user_b_status) + "\n" + str(user_b_socket)
-            conexao.send(mensagem.encode())
+            b_status_port = str(user_b_status) + "\n" + str(user_b_socket)
+            conexao.send(b_status_port.encode())
 
-            # user_b_socket.send(b"GAME_INVITE")
-            # resposta = user_b_socket.recv(1024).decode()
-            # if resposta == "GAME_ACK":
-            #     # Se o usuário B aceitar, mude o status de ambos os jogadores para "ATIVO"
-            #     for user in connected_users:
-            #         if user["user"] == user_b or user["socket"] == conexao:
-            #             user["status"] = "ATIVO"
-            #     conexao.send(b"GAME_ACK")
-            # elif resposta == "GAME_NEG":
-            #     conexao.send(b"GAME_NEG")
         elif mensagem == b"EXIT":
             conexao.send(b"EXIT")
             break
@@ -139,6 +129,10 @@ def handle_client(conexao, cliente, connected_users):
         print("Mensagem.:", mensagem.decode())
 
     print("Finalizando conexão do cliente", cliente)
+    # remove o usuário da lista de usuários conectados
+    for user in connected_users:
+        if user["ip"] == cliente[0] and user["porta"] == cliente[1]:
+            connected_users.remove(user)
     conexao.close()
 
 
@@ -164,17 +158,6 @@ running = True
 def server_thread():
     while running:
         conexao, cliente = tcp.accept()
-        username = conexao.recv(
-            1024
-        ).decode()  # Receba o nome de usuário quando um cliente se conectar
-        connected_users.append(
-            {
-                "user": username,
-                "status": "INATIVO",  # Atribuir o status como "ATIVO" quando um cliente se conectar
-                "ip": cliente[0],
-                "porta": cliente[1],
-            }
-        )
         client_handler = threading.Thread(
             target=handle_client, args=(conexao, cliente, connected_users)
         )
