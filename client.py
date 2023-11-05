@@ -11,6 +11,70 @@ HOST = "localhost"  # IP Servidor
 tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 
+def list_user_online():
+    response = "1"
+    tcp.send(response.encode())
+    time.sleep(0.5)
+
+    # Recebe a lista de usuários conectados
+    data = tcp.recv(1024).decode()
+
+    # print(data)
+
+    if is_json(data[1:]):
+        lista_usuarios = json.loads(data[1:])
+    else:
+        print("Received data is not a valid JSON")
+        lista_usuarios = []
+
+    # Se a lista de usuários estiver vazia, imprima que não há usuários conectados.
+    if not lista_usuarios:
+        print("Não há usuários conectados!\n")
+    else:
+        max_len_user = len("User")
+        max_len_status = len("Status")
+        max_len_ip = len("IP")
+        max_len_porta = len("Porta")
+
+        for user in lista_usuarios:
+            max_len_user = max(max_len_user, len(user["user"]))
+            max_len_status = max(max_len_status, len(user["status"]))
+            max_len_ip = max(max_len_ip, len(user["ip"]))
+            max_len_porta = max(max_len_porta, len(str(user["porta"])))
+
+        total_len = max_len_user + max_len_status + max_len_ip + max_len_porta + 13
+
+        print("\n")
+        print("{:-^{}}".format(" USUÁRIOS-ONLINE ", total_len))
+        print(
+            "| {:^{}} | {:^{}} | {:^{}} | {:^{}} |".format(
+                "User",
+                max_len_user,
+                "Status",
+                max_len_status,
+                "IP",
+                max_len_ip,
+                "Porta",
+                max_len_porta,
+            )
+        )
+        print("{:-^{}}".format("", total_len))
+        for user in lista_usuarios:
+            print(
+                "| {:^{}} | {:^{}} | {:^{}} | {:^{}} |".format(
+                    user["user"],
+                    max_len_user,
+                    user["status"],
+                    max_len_status,
+                    user["ip"],
+                    max_len_ip,
+                    user["porta"],
+                    max_len_porta,
+                )
+            )
+        print("{:-^{}}\n".format("", total_len))
+
+
 def is_json(myjson):
     try:
         json_object = json.loads(myjson)
@@ -70,66 +134,7 @@ def list_functions():
     # caso Listar usuários online
     # caso Listar usuários online
     if response == "1":
-        tcp.send(response.encode())
-        time.sleep(0.5)
-
-        # Recebe a lista de usuários conectados
-        data = tcp.recv(1024).decode()
-
-        # print(data)
-
-        if is_json(data[1:]):
-            lista_usuarios = json.loads(data[1:])
-        else:
-            print("Received data is not a valid JSON")
-            lista_usuarios = []
-
-        # Se a lista de usuários estiver vazia, imprima que não há usuários conectados.
-        if not lista_usuarios:
-            print("Não há usuários conectados!\n")
-        else:
-            max_len_user = len("User")
-            max_len_status = len("Status")
-            max_len_ip = len("IP")
-            max_len_porta = len("Porta")
-
-            for user in lista_usuarios:
-                max_len_user = max(max_len_user, len(user["user"]))
-                max_len_status = max(max_len_status, len(user["status"]))
-                max_len_ip = max(max_len_ip, len(user["ip"]))
-                max_len_porta = max(max_len_porta, len(str(user["porta"])))
-
-            total_len = max_len_user + max_len_status + max_len_ip + max_len_porta + 13
-
-            print("\n")
-            print("{:-^{}}".format(" USUÁRIOS-ONLINE ", total_len))
-            print(
-                "| {:^{}} | {:^{}} | {:^{}} | {:^{}} |".format(
-                    "User",
-                    max_len_user,
-                    "Status",
-                    max_len_status,
-                    "IP",
-                    max_len_ip,
-                    "Porta",
-                    max_len_porta,
-                )
-            )
-            print("{:-^{}}".format("", total_len))
-            for user in lista_usuarios:
-                print(
-                    "| {:^{}} | {:^{}} | {:^{}} | {:^{}} |".format(
-                        user["user"],
-                        max_len_user,
-                        user["status"],
-                        max_len_status,
-                        user["ip"],
-                        max_len_ip,
-                        user["porta"],
-                        max_len_porta,
-                    )
-                )
-            print("{:-^{}}\n".format("", total_len))
+        list_user_online()
 
     # caso Listar usuários jogando
     elif response == "2":
@@ -156,6 +161,7 @@ def list_functions():
                 print(user)
 
     elif response == "3":
+        list_user_online()
         response = "GAME_INI"
         tcp.send(response.encode())
         # O usuário tem acesso a lista de usuários com status
