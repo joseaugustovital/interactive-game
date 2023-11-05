@@ -3,7 +3,6 @@ import threading
 import json
 import datetime
 from random_port import result
-import json
 
 HOST = "127.0.0.1"  # Endereco IP do Servidor
 PORT = result  # Porta que o Servidor está
@@ -11,18 +10,6 @@ PORT = result  # Porta que o Servidor está
 # Escreve a porta no arquivo
 with open("port.txt", "w") as f:
     f.write(str(result))
-
-
-def logged(username):
-    with open("credentials.json", "r") as content:
-        credentials = json.load(content)
-    # Atualiza a propriedade "logged" do usuário para False
-    for key, user in credentials.items():
-        if user["user"] == username:
-            user["logged"] = False
-    # Escreve as alterações no arquivo "credentials.json"
-    with open("credentials.json", "w") as content:
-        json.dump(credentials, content, indent=4)
 
 
 def send_large_data(conexao, data):
@@ -49,7 +36,7 @@ def log_event(event):
 def handle_client(conexao, cliente, connected_users):
     # Receba o nome de usuário quando um cliente se conectar
     username = conexao.recv(1024).decode()
-    print("Usuário conectado:", username)
+
     # Adicionar o usuário à lista de usuários conectados
     connected_users.append(
         {
@@ -113,6 +100,7 @@ def handle_client(conexao, cliente, connected_users):
                 send_large_data(conexao, lista_usuarios)
 
         elif mensagem.decode() == "GAME_INI":
+            # envia a lista de usuarios conectados
             user = conexao.recv(1024)
             user_b = user.decode()
             print("\nUsuário destino:", user_b)
@@ -129,13 +117,16 @@ def handle_client(conexao, cliente, connected_users):
                 print(f"Usuário {user_b} não encontrado.")
                 continue
             # Envie uma mensagem para o usuário B perguntando se ele aceita ou não o convite para o jogo
-            b_status_port = str(user_b_status) + "\n" + str(user_b_socket)
+            b_status_port = (
+                str(user_b_status)
+                + "\n"
+                + str(user_b_socket)
+                + "\n"
+                + str(connected_users)
+            )
             conexao.send(b_status_port.encode())
 
-        # se mensagem for EXIT ou a conexão for fechada
-        elif mensagem.decode() == "EXIT" or not mensagem:
-            # atualiza o capo logged para false
-            logged(username)
+        elif mensagem == b"EXIT":
             conexao.send(b"EXIT")
             break
 
@@ -145,7 +136,11 @@ def handle_client(conexao, cliente, connected_users):
         print("Mensagem.:", mensagem.decode())
 
     print("Finalizando conexão do cliente", cliente)
-    logged(username)
+    # remove o usuário da lista de usuários conectados
+    for user in connected_users:
+        if user["ip"] == cliente[0] and user["porta"] == cliente[1]:
+            connected_users.remove(user)
+    conexao.close()
 
 
 tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -166,9 +161,21 @@ print("---------------------------------------------------")
 
 running = True
 
+
+def server_thread():
+    while running:
+        conexao, cliente = tcp.accept()
+        client_handler = threading.Thread(
+            target=handle_client, args=(conexao, cliente, connected_users)
+        )
+        client_handler.start()
+
+
+server = threading.Thread(target=server_thread)
+server.start()
+
 while True:
-    conexao, cliente = tcp.accept()
-    client_handler = threading.Thread(
-        target=handle_client, args=(conexao, cliente, connected_users)
-    )
-    client_handler.start()
+    command = input()
+    if command.lower() == "stop":
+        running = False
+        tcp.close()

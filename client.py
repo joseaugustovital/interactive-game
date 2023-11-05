@@ -2,6 +2,8 @@ import socket
 import json
 import getpass
 import time
+import threading
+
 
 with open("port.txt", "r") as f:
     PORT = int(f.read())
@@ -93,6 +95,17 @@ def recv_json(sock):
             pass
 
 
+def receive_messages():
+    while True:
+        try:
+            data = tcp.recv(1024)
+            if not data:
+                break
+            print(data.decode())
+        except:
+            break
+
+
 # Função para listar as funções disponíveis e solicitar
 # a execução de uma delas no servidor.
 def list_functions():
@@ -157,84 +170,22 @@ def list_functions():
         complete_msg = mensagem_recv.decode().split("\n")
         mensagem = complete_msg[0]
         user_b_port_response = complete_msg[1]
+        list_connected_users = complete_msg[2]
 
         print("Status do jogador destino: ", mensagem)
 
-        print("Porta do jogador destino: ", user_b_port_response)
+        # print("Porta do jogador destino: ", user_b_port_response)
         if mensagem == "ATIVO":
             print(f"O usuário {user_b} não pode jogar no momento!")
         elif mensagem == "INATIVO":
-            # Estabelece a conexão P2P com o usuário B
-            user_a_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            # gere uma porta aleatória para o usuário A se conectar
-            user_a_socket.bind(("localhost", 0))
-            # registre a porta aleatória gerada
-            user_a_port = user_a_socket.getsockname()[1]
+            # porta do usuário A que é a porta deste cliente
+            user_a_port = int(tcp.getsockname()[1])
+            # porta do usuário B
             user_b_port = int(user_b_port_response)
+
+            # printe as portas
+            print("Porta do usuário A:", user_a_port)
             print("Porta do usuário B:", user_b_port)
-            user_b_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            user_b_socket.bind(("localhost", user_b_port))
-
-            print(f"Tentando estabelecer conexão com {user_b}")
-
-            print(user_a_socket)
-            print(user_b_socket)
-            # Envia uma mensagem para o usuário B perguntando se ele aceita ou não o convite para o jogo
-            # antes de solicitar o input verifique se esta no terminal do usuario b
-            # se sim, solicite o input do usuario b e envie para o usuario a
-            if user_b_socket.getsockname()[1] == int(user_b_port_response):
-                convite_user_b = input("Digite GAME_ACK ou GAME_NEG:")
-                user_a_socket.sendto(
-                    convite_user_b.encode(), ("localhost", user_b_port)
-                )
-            else:
-                print("Aguardando resposta do usuário B...")
-                while True:
-                    try:
-                        convite, _ = user_b_socket.recvfrom(
-                            1024
-                        )  # Recebe a mensagem e ignora o endereço do remetente
-                        mensagem = (
-                            convite.decode()
-                        )  # Decodifica a mensagem de bytes para string
-                        print(
-                            f"Mensagem recebida do usuário B: {mensagem}"
-                        )  # Imprime a mensagem recebida no terminal do usuário A
-                        break
-                    except Exception as e:
-                        print(f"Erro ao receber mensagem: {e}")
-                        break
-
-                # Envia a resposta do usuário B para o usuário A
-                user_a_socket.sendto(convite, ("localhost", user_b_port))
-
-            # usuario b recebe a mensagem
-            while True:
-                try:
-                    convite, _ = user_b_socket.recvfrom(
-                        1024
-                    )  # Recebe a mensagem e ignora o endereço do remetente
-                    mensagem = (
-                        convite.decode()
-                    )  # Decodifica a mensagem de bytes para string
-                    print(
-                        f"Mensagem recebida do usuário B: {mensagem}"
-                    )  # Imprime a mensagem recebida no terminal do usuário A
-                    break
-                except Exception as e:
-                    print(f"Erro ao receber mensagem: {e}")
-                    break
-
-            # Recebe a resposta do usuário B
-            # Se o usuário B aceitar o convite, inicie o jogo
-            if convite.decode() == "GAME_ACK":
-                print("Jogo iniciado!")
-                # Inicia o jogo
-                # game(user_b_socket)
-            elif convite:
-                print("O usuário B não aceitou o convite para o jogo!")
-        else:
-            print("usuário não encontrado!")
 
     elif response == "0":
         print("Saindo...")
@@ -292,14 +243,14 @@ def login_request():
             and "password" in credential
             and user == credential["user"]
             and password == credential["password"]
-            and credential["logged"] == False
+            # and credential["logged"] == False
         ):
             print("| Usuário autenticado com sucesso!      |")
             print("-----------------------------------------\n")
             # Atualiza o arquivo credentials.json com o usuário logado (logged = True)
-            with open("credentials.json", "w") as content:
-                credential["logged"] = True
-                json.dump(credentials, content, indent=4)
+            # with open("credentials.json", "w") as content:
+            #     credential["logged"] = True
+            #     json.dump(credentials, content, indent=4)
 
             return True, user
 
