@@ -169,17 +169,19 @@ def list_functions():
             user_a_socket.bind(("", 0))
 
             user_b_port = int(user_b_port_response)
+            print("Porta do usuário B:", user_b_port)
             user_b_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             user_b_socket.bind(("localhost", user_b_port))
             while True:
                 try:
                     print(f"Tentando estabelecer conexão com {user_b}")
-                    user_a_socket.connect(("localhost", user_b_port))
-                    user_b_socket.connect(("localhost", user_a_socket.getsockname()[1]))
+
                     # Tenta estabelecer uma conexão com o usuário B
                     # pega a porta do usuário B e se conecta a ele
-                    user_a_socket.send("GAME_INI".encode())
-                    user_b_socket.send("GAME_INI".encode())
+                    user_a_socket.connect(
+                        ("localhost", user_b_port)
+                    )  # Adicionado a linha para conectar o usuário A ao usuário B
+
                     break
                 except ConnectionRefusedError:
                     print("Conexão recusada, tentando novamente em 5 segundos...")
@@ -190,29 +192,26 @@ def list_functions():
             print(user_a_socket)
             print(user_b_socket)
             # Envia uma mensagem para o usuário B perguntando se ele aceita ou não o convite para o jogo
-            user_a_socket.send("GAME_INI".encode())
+            # faca aparecer na tela do usuario b a mensagem de convite para o jogo e aguarde a resposta
+            # do usuario b para iniciar o jogo ou nao (GAME_ACK ou GAME_NACK) e imprima na tela do usuario a
+            # resposta do usuario b (GAME_ACK ou GAME_NACK)
+
+            mensagem = input("Digite a mensagem:")
+            user_a_socket.send(mensagem.encode())
 
             # usuario b recebe a mensagem
-            mensagem = user_b_socket.recv(1024).decode()
-
-            print("mensagem", mensagem)
+            convite = user_b_socket.recv(1024).decode()  # Recebe a mensagem
+            print(
+                "Mensagem recebida:", convite
+            )  # Decodifica a mensagem de bytes para string e imprime
+            
             # Recebe a resposta do usuário B
-            resposta = None
-            try:
-                resposta = user_b_socket.recv(1024).decode()
-                print("resposta", resposta)
-            except ConnectionRefusedError:
-                print(
-                    "Conexão recusada. O servidor pode não estar disponível ou a porta pode estar fechada."
-                )
-            except Exception as e:
-                print(f"Erro: {e}")
             # Se o usuário B aceitar o convite, inicie o jogo
-            if resposta and resposta == "GAME_ACK":
+            if convite == "GAME_ACK":
                 print("Jogo iniciado!")
                 # Inicia o jogo
                 # game(user_b_socket)
-            elif resposta:
+            elif convite:
                 print("O usuário B não aceitou o convite para o jogo!")
         else:
             print("usuário não encontrado!")
