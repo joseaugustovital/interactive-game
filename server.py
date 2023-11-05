@@ -13,14 +13,16 @@ with open("port.txt", "w") as f:
     f.write(str(result))
 
 
-# crie um metoodo para atribuir como false o campo logged de quem se desconectou
-# e o status para INATIVO   para que o usuário não apareça na lista de usuários conectados
-# enquanto ele não estiver conectado
-def reset_user_info(user, connected_users):
-    for element in connected_users:
-        if element["user"] == user:
-            element["logged"] = False
-            element["status"] = "INATIVO"
+def logged(username):
+    with open("credentials.json", "r") as content:
+        credentials = json.load(content)
+    # Atualiza a propriedade "logged" do usuário para False
+    for key, user in credentials.items():
+        if user["user"] == username:
+            user["logged"] = False
+    # Escreve as alterações no arquivo "credentials.json"
+    with open("credentials.json", "w") as content:
+        json.dump(credentials, content, indent=4)
 
 
 def send_large_data(conexao, data):
@@ -130,7 +132,10 @@ def handle_client(conexao, cliente, connected_users):
             b_status_port = str(user_b_status) + "\n" + str(user_b_socket)
             conexao.send(b_status_port.encode())
 
-        elif mensagem == b"EXIT":
+        # se mensagem for EXIT ou a conexão for fechada
+        elif mensagem.decode() == "EXIT" or not mensagem:
+            # atualiza o capo logged para false
+            logged(username)
             conexao.send(b"EXIT")
             break
 
@@ -140,25 +145,7 @@ def handle_client(conexao, cliente, connected_users):
         print("Mensagem.:", mensagem.decode())
 
     print("Finalizando conexão do cliente", cliente)
-    # precisamos alterar o "logged": true para "logged": false
-    # para que o usuário possa se conectar novamente
-    # e também precisamos alterar o status para INATIVO
-    # para que o usuário não apareça na lista de usuários conectados
-    # enquanto ele não estiver conectado
-    # Lê o conteúdo do arquivo "credentials.json" e armazena em uma variável
-    with open("credentials.json", "r") as content:
-        credentials = json.load(content)
-
-    # Atualiza a propriedade "logged" do usuário para False
-    for user in credentials["users"]:
-        if user["username"] == username:
-            user["logged"] = False
-
-    # Escreve as alterações no arquivo "credentials.json"
-    with open("credentials.json", "w") as content:
-        if user["username"] == username:
-            user["logged"] = False
-        json.dump(credentials, content, indent=4)
+    logged(username)
 
 
 tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -179,21 +166,9 @@ print("---------------------------------------------------")
 
 running = True
 
-
-def server_thread():
-    while running:
-        conexao, cliente = tcp.accept()
-        client_handler = threading.Thread(
-            target=handle_client, args=(conexao, cliente, connected_users)
-        )
-        client_handler.start()
-
-
-server = threading.Thread(target=server_thread)
-server.start()
-
 while True:
-    command = input()
-    if command.lower() == "stop":
-        running = False
-        tcp.close()
+    conexao, cliente = tcp.accept()
+    client_handler = threading.Thread(
+        target=handle_client, args=(conexao, cliente, connected_users)
+    )
+    client_handler.start()
